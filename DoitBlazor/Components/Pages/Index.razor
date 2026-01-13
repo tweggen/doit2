@@ -1,0 +1,378 @@
+@page "/"
+@rendermode InteractiveServer
+@inject ITodoService TodoService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<PageTitle>Doit - Todo List</PageTitle>
+
+<AuthorizeView>
+    <Authorized Context="authContext">
+        <div class="task-input-bar">
+            <input type="text" 
+                   placeholder="Enter new task..." 
+                   @onclick="OpenNewTaskModal"
+                   readonly />
+            <span class="late-indicator">@GetLatePercentage()</span>
+        </div>
+
+        @if (items == null)
+        {
+            <div style="padding: 2rem; text-align: center;">
+                <em>Loading...</em>
+            </div>
+        }
+        else
+        {
+            <div class="task-list-compact">
+                @if (groupBy == "none")
+                {
+                    <ul>
+                        @foreach (var item in GetFilteredItems())
+                        {
+                            @RenderCompactTaskItem(item)
+                        }
+                    </ul>
+                }
+                else if (groupBy == "duedate")
+                {
+                    @foreach (var group in GetItemsGroupedByDueDate())
+                    {
+                        <div class="person-group-header">@group.Key</div>
+                        <ul>
+                            @foreach (var item in group)
+                            {
+                                @RenderCompactTaskItem(item)
+                            }
+                        </ul>
+                    }
+                }
+                else if (groupBy == "person")
+                {
+                    @foreach (var group in GetItemsGroupedByPerson())
+                    {
+                        <div class="person-group-header">@group.Key</div>
+                        <ul>
+                            @foreach (var item in group)
+                            {
+                                @RenderCompactTaskItem(item)
+                            }
+                        </ul>
+                    }
+                }
+            </div>
+
+            <div class="filter-tabs">
+                <ul>
+                    <li><button class="@(statusFilter == "all" ? "active" : "")" @onclick='() => statusFilter = "all"'>all</button></li>
+                    <li><button class="@(statusFilter == "active" ? "active" : "")" @onclick='() => statusFilter = "active"'>active</button></li>
+                    <li><button class="@(statusFilter == "completed" ? "active" : "")" @onclick='() => statusFilter = "completed"'>completed</button></li>
+                    <li><button class="@(groupBy == "duedate" ? "active" : "")" @onclick='() => groupBy = "duedate"'>by date</button></li>
+                    <li><button class="@(groupBy == "person" ? "active" : "")" @onclick='() => groupBy = "person"'>by contact</button></li>
+                </ul>
+            </div>
+        }
+
+        @if (showNewTaskModal)
+        {
+            <div class="modal-overlay" @onclick="CloseNewTaskModal">
+                <div class="modal-content" @onclick:stopPropagation="true">
+                    <div class="modal-header">
+                        <h3>Add New Task</h3>
+                    </div>
+                    <div class="modal-body">
+                        <EditForm Model="@newItem" OnValidSubmit="@CreateItem">
+                            <DataAnnotationsValidator />
+                            <ValidationSummary />
+                            
+                            <div class="form-group">
+                                <label>Caption</label>
+                                <InputText @bind-Value="newItem.Caption" placeholder="What needs to be done?" />
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Due Date</label>
+                                <InputDate @bind-Value="newItem.Due" />
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Contact</label>
+                                <InputSelect @bind-Value="newItem.ContactId">
+                                    <option value="0">Select Contact...</option>
+                                    @foreach (var person in persons)
+                                    {
+                                        <option value="@person.Id">@person.FamilyName, @person.GivenName</option>
+                                    }
+                                </InputSelect>
+                                <button type="button" class="btn btn-secondary" style="margin-top: 0.5rem;" @onclick="ShowQuickAddPerson">
+                                    Add New Contact
+                                </button>
+                            </div>
+                            
+                            @if (showQuickAddForm)
+                            {
+                                <div style="padding: 1rem; background-color: #f3f4f6; border-radius: 4px; margin-bottom: 1rem;">
+                                    <h4 style="margin-top: 0; font-size: 14px;">Quick Add Contact</h4>
+                                    <EditForm Model="@quickAddPerson" OnValidSubmit="@QuickAddPerson" Context="quickAddContext">
+                                        <div class="form-group">
+                                            <label>Family Name *</label>
+                                            <InputText @bind-Value="quickAddPerson.FamilyName" placeholder="Last name" />
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Given Name</label>
+                                            <InputText @bind-Value="quickAddPerson.GivenName" placeholder="First name" />
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Email</label>
+                                            <InputText @bind-Value="quickAddPerson.Email" placeholder="email@example.com" />
+                                        </div>
+                                        <button type="submit" class="btn btn-primary">Add Contact</button>
+                                        <button type="button" class="btn btn-secondary" style="margin-left: 0.5rem;" @onclick="CancelQuickAdd">Cancel</button>
+                                    </EditForm>
+                                </div>
+                            }
+                            
+                            <div class="form-group">
+                                <label>Details</label>
+                                <InputTextArea @bind-Value="newItem.Content" rows="3" />
+                            </div>
+                            
+                            <div class="modal-footer" style="border-top: none; padding: 0;">
+                                <button type="submit" class="btn btn-primary">Add Task</button>
+                                <button type="button" class="btn btn-secondary" @onclick="CloseNewTaskModal">Cancel</button>
+                            </div>
+                        </EditForm>
+                    </div>
+                </div>
+            </div>
+        }
+    </Authorized>
+    <NotAuthorized>
+        <div class="text-center py-5">
+            <h1 class="display-4 mb-4">Welcome to Doit</h1>
+            <p class="lead mb-4">Your personal task management application</p>
+            <p class="mb-4">Organize your tasks, track due dates, and collaborate with contacts.</p>
+            
+            <div class="d-flex gap-3 justify-content-center">
+                <a href="Identity/Account/Register" class="btn btn-primary btn-lg">
+                    Get Started - Register
+                </a>
+                <a href="Identity/Account/Login" class="btn btn-secondary btn-lg">
+                    Log In
+                </a>
+            </div>
+            
+            <div class="mt-5">
+                <h4>Features:</h4>
+                <div class="row mt-4">
+                    <div class="col-md-4">
+                        <h5>📋 Task Management</h5>
+                        <p>Create, organize, and track your todos</p>
+                    </div>
+                    <div class="col-md-4">
+                        <h5>📅 Due Dates</h5>
+                        <p>Never miss a deadline with visual reminders</p>
+                    </div>
+                    <div class="col-md-4">
+                        <h5>👥 Contacts</h5>
+                        <p>Assign tasks to people and track responsibilities</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    private List<TodoItem>? items;
+    private List<Person> persons = new();
+    private TodoItem newItem = new();
+    private Person quickAddPerson = new();
+    private int currentUserId;
+    private Person? currentPerson;
+    private bool showQuickAddForm = false;
+    private bool showNewTaskModal = false;
+    
+    // View controls
+    private string statusFilter = "active";
+    private string groupBy = "none";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            var userIdClaim = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+            var emailClaim = user.FindFirst(System.Security.Claims.ClaimTypes.Email);
+            var nameClaim = user.FindFirst(System.Security.Claims.ClaimTypes.Name);
+            
+            if (userIdClaim != null && int.TryParse(userIdClaim.Value, out var userId))
+            {
+                currentUserId = userId;
+                
+                // Ensure user has a Person record
+                if (emailClaim != null)
+                {
+                    await TodoService.EnsureUserHasPersonAsync(userId, emailClaim.Value, nameClaim?.Value);
+                }
+                
+                await LoadData();
+            }
+        }
+    }
+
+    private async Task LoadData()
+    {
+        items = await TodoService.GetUserItemsAsync(currentUserId);
+        persons = await TodoService.GetUserPersonsAsync(currentUserId);
+        currentPerson = await TodoService.FindPersonForUserAsync(currentUserId);
+        
+        var defaultPersonId = currentPerson?.Id ?? persons.FirstOrDefault()?.Id ?? 0;
+        
+        newItem = new TodoItem
+        {
+            UserId = currentUserId,
+            AuthorId = defaultPersonId,
+            ContactId = defaultPersonId,
+            Status = 0,
+            Due = DateOnly.FromDateTime(DateTime.Now)
+        };
+    }
+
+    private IEnumerable<TodoItem> GetFilteredItems()
+    {
+        if (items == null) return Enumerable.Empty<TodoItem>();
+        
+        var filtered = statusFilter switch
+        {
+            "active" => items.Where(i => i.Status == 0),
+            "completed" => items.Where(i => i.Status == 1),
+            _ => items
+        };
+        
+        return filtered.OrderBy(i => i.Due).ThenBy(i => i.Status);
+    }
+
+    private IEnumerable<IGrouping<string, TodoItem>> GetItemsGroupedByDueDate()
+    {
+        return GetFilteredItems()
+            .GroupBy(i => i.Due.HasValue ? i.Due.Value.ToString("yyyy-MM-dd") : "No Due Date")
+            .OrderBy(g => g.Key == "No Due Date" ? "9999-99-99" : g.Key);
+    }
+
+    private IEnumerable<IGrouping<string, TodoItem>> GetItemsGroupedByPerson()
+    {
+        return GetFilteredItems()
+            .GroupBy(i => i.Contact != null 
+                ? $"{i.Contact.FamilyName}, {i.Contact.GivenName}" 
+                : "No Contact")
+            .OrderBy(g => g.Key);
+    }
+
+    private string GetLatePercentage()
+    {
+        if (items == null || !items.Any()) return "0% late";
+        
+        var activeItems = items.Where(i => i.Status == 0).ToList();
+        if (!activeItems.Any()) return "0% late";
+        
+        var lateItems = activeItems.Count(i => i.Due.HasValue && i.Due.Value < DateOnly.FromDateTime(DateTime.Now));
+        var percentage = (int)((double)lateItems / activeItems.Count * 100);
+        
+        return $"{percentage}% late";
+    }
+
+    private RenderFragment RenderCompactTaskItem(TodoItem item) => __builder =>
+    {
+        var isCompleted = item.Status == 1;
+        var cssClass = isCompleted ? "task-item-compact completed" : "task-item-compact";
+        
+        <li class="@cssClass">
+            <input type="checkbox" 
+                   checked="@isCompleted"
+                   @onchange="@(() => ToggleItem(item.Id))" />
+            <label @onclick="@(() => ToggleItem(item.Id))">@item.Caption</label>
+            <span class="task-date">
+                @if (item.Due.HasValue)
+                {
+                    @item.Due.Value.ToString("MM/dd/yyyy")
+                }
+            </span>
+            <div class="task-actions">
+                <button type="button" @onclick="@(() => DeleteItem(item.Id))">×</button>
+            </div>
+        </li>
+    };
+
+    private void OpenNewTaskModal()
+    {
+        showNewTaskModal = true;
+        showQuickAddForm = false;
+    }
+
+    private void CloseNewTaskModal()
+    {
+        showNewTaskModal = false;
+        showQuickAddForm = false;
+    }
+
+    private void ShowQuickAddPerson()
+    {
+        quickAddPerson = new Person 
+        { 
+            OwningUserId = currentUserId,
+            Status = 0
+        };
+        showQuickAddForm = true;
+    }
+
+    private async Task QuickAddPerson()
+    {
+        if (!string.IsNullOrWhiteSpace(quickAddPerson.FamilyName))
+        {
+            await TodoService.CreatePersonAsync(quickAddPerson);
+            await LoadData();
+            
+            var newlyAddedPerson = persons.FirstOrDefault(p => 
+                p.FamilyName == quickAddPerson.FamilyName && 
+                p.GivenName == quickAddPerson.GivenName);
+            
+            if (newlyAddedPerson != null)
+            {
+                newItem.ContactId = newlyAddedPerson.Id;
+                newItem.AuthorId = newlyAddedPerson.Id;
+            }
+            
+            showQuickAddForm = false;
+        }
+    }
+
+    private void CancelQuickAdd()
+    {
+        showQuickAddForm = false;
+        quickAddPerson = new();
+    }
+
+    private async Task CreateItem()
+    {
+        if (!string.IsNullOrWhiteSpace(newItem.Caption) && newItem.ContactId > 0 && newItem.AuthorId > 0)
+        {
+            await TodoService.CreateItemAsync(newItem);
+            await LoadData();
+            CloseNewTaskModal();
+        }
+    }
+
+    private async Task ToggleItem(int id)
+    {
+        await TodoService.ToggleItemStatusAsync(id);
+        await LoadData();
+    }
+
+    private async Task DeleteItem(int id)
+    {
+        await TodoService.DeleteItemAsync(id);
+        await LoadData();
+    }
+}

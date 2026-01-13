@@ -1,0 +1,38 @@
+@inherits LayoutComponentBase
+
+<div class="page">
+    <input type="checkbox" id="menu-toggle" class="menu-toggle-checkbox" />
+    
+    <div class="sidebar">
+        <NavMenu />
+    </div>
+
+    <label for="menu-toggle" class="sidebar-overlay"></label>
+
+    <main>
+        <div class="top-row px-4">
+            <label for="menu-toggle" class="menu-toggle-button">
+                <span class="menu-icon-open">&gt;</span>
+                <span class="menu-icon-close">&lt;</span>
+            </label>
+            
+            <div class="top-row-content">
+                <AuthorizeView>
+                    <Authorized Context="authContext">
+                        <span>Hello, @authContext.User.Identity?.Name!</span>
+                        <a href="Identity/Account/Manage">Settings</a>
+                        <a href="Account/Logout">Log out</a>
+                    </Authorized>
+                    <NotAuthorized>
+                        <a href="Identity/Account/Register">Register</a>
+                        <a href="Identity/Account/Login">Log in</a>
+                    </NotAuthorized>
+                </AuthorizeView>
+            </div>
+        </div>
+
+        <article class="content px-4">
+            @Body
+        </article>
+    </main>
+</div>
