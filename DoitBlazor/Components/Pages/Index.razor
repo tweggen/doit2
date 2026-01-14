@@ -283,15 +283,31 @@
         return $"{percentage}% late";
     }
 
+    private string GetDueDateColor(TodoItem item)
+    {
+        if (!item.Due.HasValue) return "#10b981"; // green for no date (future)
+    
+        var today = DateOnly.FromDateTime(DateTime.Now);
+    
+        if (item.Due.Value < today)
+            return "#dc2626"; // red for overdue
+        else if (item.Due.Value == today)
+            return "#fbbf24"; // yellow for today
+        else
+            return "#10b981"; // green for future
+    }
+    
     private RenderFragment RenderCompactTaskItem(TodoItem item) => __builder =>
     {
         var isCompleted = item.Status == 1;
         var cssClass = isCompleted ? "task-item-compact completed" : "task-item-compact";
-        
+        var dotColor = GetDueDateColor(item);
+    
         <li class="@cssClass">
             <input type="checkbox" 
                    checked="@isCompleted"
                    @onchange="@(() => ToggleItem(item.Id))" />
+            <span class="due-date-dot" style="color: @dotColor">●</span>
             <label @onclick="@(() => ToggleItem(item.Id))">@item.Caption</label>
             <span class="task-date">
                 @if (item.Due.HasValue)
@@ -304,7 +320,7 @@
             </div>
         </li>
     };
-
+    
     private void OpenNewTaskModal()
     {
         showNewTaskModal = true;
