@@ -2,8 +2,9 @@
 @rendermode InteractiveServer
 @inject ITodoService TodoService
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@using DoitBlazor.Configuration
 
-<PageTitle>Doit - Todo List</PageTitle>
+<PageTitle>@AppConfig.BrandName - Todo List</PageTitle>
 
 <AuthorizeView>
     <Authorized Context="authContext">
@@ -148,8 +149,8 @@
     </Authorized>
     <NotAuthorized>
         <div class="text-center py-5">
-            <h1 class="display-4 mb-4">Welcome to Doit</h1>
-            <p class="lead mb-4">Your personal task management application</p>
+            <h1 class="display-4 mb-4">Welcome to @AppConfig.BrandName</h1>
+            <p class="lead mb-4">@AppConfig.Tagline</p>
             <p class="mb-4">Organize your tasks, track due dates, and collaborate with contacts.</p>
             
             <div class="d-flex gap-3 justify-content-center">

@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Jost:wght@400;600&display=swap');
 
 :root {
-    --primary-color: #2563eb;
+    --primary-color: #5DADE2;
     --danger-color: #dc3545;
     --warning-color: #ffc107;
     --sidebar-width: 250px;
@@ -9,7 +9,7 @@
     --light-gray-bg: rgb(243, 244, 246);
     --gray-text: rgb(156, 163, 175);
     --dark-text: rgb(39, 39, 42);
-    --blue-text: rgb(37, 99, 235);
+    --blue-text: #5DADE2;
 }
 
 * {
@@ -180,6 +180,12 @@ main {
     width: 16px;
     height: 16px;
     cursor: pointer;
+    flex-shrink: 0;
+}
+
+.due-date-dot {
+    font-size: 20px;
+    line-height: 24px;
     flex-shrink: 0;
 }
 
@@ -366,7 +372,7 @@ main {
 .form-group textarea:focus {
     outline: none;
     border-color: var(--blue-text);
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    box-shadow: 0 0 0 3px rgba(93, 173, 226, 0.1);
 }
 
 /* Buttons */
@@ -387,7 +393,7 @@ main {
 }
 
 .btn-primary:hover {
-    background-color: #1d4ed8;
+    background-color: #4A9FD4;
 }
 
 .btn-secondary {
@@ -446,6 +452,11 @@ main {
 
 .top-row a:hover {
     background-color: #e9ecef;
+}
+
+.top-row a.active {
+    color: var(--blue-text);
+    font-weight: 600;
 }
 
 /* NavMenu specific styles */
@@ -534,4 +545,45 @@ main {
     .sidebar {
         width: 200px;
     }
+}
+
+/* Bootstrap overrides for Identity pages */
+/* Override Bootstrap's default blue with our pale blue */
+.btn-primary {
+    background-color: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+}
+
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active {
+    background-color: #4A9FD4 !important;
+    border-color: #4A9FD4 !important;
+}
+
+/* Override link colors */
+a {
+    color: var(--blue-text);
+}
+
+a:hover {
+    color: #4A9FD4;
+}
+
+/* Override form focus colors */
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--blue-text);
+    box-shadow: 0 0 0 0.25rem rgba(93, 173, 226, 0.25);
+}
+
+/* Override checkbox colors */
+.form-check-input:checked {
+    background-color: var(--blue-text);
+    border-color: var(--blue-text);
+}
+
+/* Override navbar brand color */
+.navbar-brand {
+    color: var(--primary-color) !important;
 }
