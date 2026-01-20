@@ -35,8 +35,6 @@ bld/
 # VS Code
 .vscode/
 
-# User-specific files
-appsettings.Development.json
 
 # Database
 *.db
