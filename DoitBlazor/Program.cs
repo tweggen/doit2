@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using DoitBlazor.Data;
 using DoitBlazor.Models;
 using DoitBlazor.Services;
@@ -17,6 +18,36 @@ builder.Services.AddRazorPages();
 // Configure PostgreSQL with Entity Framework
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+
+// Dev convenience: if the configured Postgres database doesn't exist yet, create it.
+// (Useful when you're using local Postgres credentials but haven't created the DB.)
+if (builder.Environment.IsDevelopment())
+{
+    var csb = new NpgsqlConnectionStringBuilder(connectionString);
+    var targetDb = csb.Database;
+    if (!string.IsNullOrWhiteSpace(targetDb))
+    {
+        var adminCsb = new NpgsqlConnectionStringBuilder(connectionString)
+        {
+            Database = "postgres"
+        };
+
+        await using var adminConn = new NpgsqlConnection(adminCsb.ConnectionString);
+        await adminConn.OpenAsync();
+
+        await using (var existsCmd = new NpgsqlCommand("SELECT 1 FROM pg_database WHERE datname = @db", adminConn))
+        {
+            existsCmd.Parameters.AddWithValue("db", targetDb);
+            var exists = await existsCmd.ExecuteScalarAsync();
+            if (exists == null)
+            {
+                // Note: database name comes from config; quote to be safe.
+                await using var createCmd = new NpgsqlCommand($"CREATE DATABASE \"{targetDb}\"", adminConn);
+                await createCmd.ExecuteNonQueryAsync();
+            }
+        }
+    }
+}
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString));
@@ -66,6 +97,14 @@ builder.Services.AddAuthorization();
 builder.Services.AddCascadingAuthenticationState();
 
 var app = builder.Build();
+
+// Dev convenience: apply EF Core migrations automatically on startup.
+if (app.Environment.IsDevelopment())
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    await db.Database.MigrateAsync();
+}
 
 // Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())

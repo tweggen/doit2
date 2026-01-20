@@ -5,7 +5,7 @@
 ### Step 1: Verify Prerequisites
 
 Make sure you have:
-- .NET 8.0 SDK installed (`dotnet --version`)
+- .NET 9.0 SDK installed (`dotnet --version`)
 - PostgreSQL running locally or accessible
 - Your favorite IDE (Visual Studio, Rider, or VS Code)
 

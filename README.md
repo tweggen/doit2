@@ -5,7 +5,7 @@ A C# Blazor Server port of the Doit todo list application, originally built with
 ## Overview
 
 This is a modern, real-time todo list application built with:
-- **ASP.NET Core 8.0** - Web framework
+- **ASP.NET Core 9.0** - Web framework
 - **Blazor Server** - Interactive UI with real-time updates via SignalR
 - **Entity Framework Core** - ORM for PostgreSQL
 - **ASP.NET Core Identity** - User authentication
@@ -37,7 +37,7 @@ The application uses PostgreSQL and maintains compatibility with the original El
 
 ### Prerequisites
 
-- .NET 8.0 SDK
+- .NET 9.0 SDK
 - PostgreSQL 12+
 - (Optional) Visual Studio 2022 or VS Code with C# extension
 

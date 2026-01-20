@@ -1,4 +1,6 @@
 ﻿using System;
+using DoitBlazor.Data;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -6,6 +8,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace DoitBlazor.Migrations
 {
+    [DbContext(typeof(ApplicationDbContext))]
+    [Migration("20260113065209_InitialCreate")]
     /// <inheritdoc />
     public partial class InitialCreate : Migration
     {
