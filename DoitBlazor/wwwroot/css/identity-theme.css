@@ -64,3 +64,31 @@ a:hover {
     background-color: var(--brand-color) !important;
     border-color: var(--brand-color) !important;
 }
+
+/* Back button - matches the menu toggle style from main app */
+.back-button {
+    display: inline-block;
+    background: none;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 0.5rem 0.75rem;
+    font-size: 1.2rem;
+    color: #333 !important;
+    line-height: 1;
+    text-decoration: none !important;
+    margin-right: 0.5rem;
+    transition: background-color 0.2s;
+}
+
+.back-button:hover {
+    background-color: #e9ecef;
+    text-decoration: none !important;
+    color: #333 !important;
+}
+
+/* Hide back button on larger screens where sidebar is always visible */
+@media (min-width: 769px) {
+    .back-button {
+        display: none;
+    }
+}

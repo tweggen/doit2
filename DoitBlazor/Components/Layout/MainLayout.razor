@@ -30,7 +30,6 @@
                     <Authorized Context="authContext">
                         <span class="greeting">Hello, @GetDisplayName(authContext.User.Identity?.Name)!</span>
                         <a href="Identity/Account/Manage">Settings</a>
-                        <a href="Account/Logout">Log out</a>
                     </Authorized>
                     <NotAuthorized>
                         <a href="Identity/Account/Register">Register</a>
