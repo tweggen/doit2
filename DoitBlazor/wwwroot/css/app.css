@@ -142,30 +142,35 @@ main {
     flex-direction: column;
 }
 
-/* Top input bar - matches original exactly: 24px height, no extra padding */
+/* Top input bar - container without background */
 .task-input-bar {
-    background-color: var(--cream-bg);
-    padding: 0;
+    background-color: transparent;
+    padding: 0 0.5rem;
     border-bottom: 1px solid #e5e7eb;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    min-height: 24px;
-    height: 24px;
+    min-height: 28px;
+    height: 28px;
     order: -1; /* Top on desktop */
 }
 
 .task-input-bar input {
     border: none;
-    background: transparent;
+    background-color: var(--cream-bg);
+    border-radius: 4px;
     font-size: 14px;
     font-weight: 600;
-    flex: 1;
     outline: none;
     color: var(--dark-text);
-    height: 20px;
-    line-height: 20px;
-    padding: 0 0.5rem;
+    height: 22px;
+    line-height: 22px;
+    /* Position: align text with task item label, with small visual padding on left */
+    margin-left: calc(52px - 0.5rem - 12px);
+    padding: 0 8px 0 12px;
+    /* Width: reasonable input field width, not spanning full row */
+    flex: 1 1 auto;
+    max-width: 400px;
 }
 
 .task-input-bar input::placeholder {
