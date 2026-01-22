@@ -250,6 +250,23 @@ main {
     white-space: nowrap;
     flex-shrink: 0;
     line-height: 24px;
+    cursor: pointer;
+}
+
+.task-date:hover {
+    color: var(--blue-text);
+}
+
+.task-date-input {
+    font-size: 14px;
+    color: var(--dark-text);
+    border: 1px solid var(--blue-text);
+    border-radius: 4px;
+    padding: 0 4px;
+    height: 22px;
+    line-height: 20px;
+    flex-shrink: 0;
+    font-family: 'Jost', sans-serif;
 }
 
 .task-actions {

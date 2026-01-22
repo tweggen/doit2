@@ -2,6 +2,7 @@
 @rendermode InteractiveServer
 @inject ITodoService TodoService
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IJSRuntime JS
 @using DoitBlazor.Configuration
 
 <PageTitle>@AppConfig.BrandName - Todo List</PageTitle>
@@ -11,8 +12,9 @@
         <div class="task-input-bar">
             <input type="text" 
                    placeholder="Enter new task..." 
-                   @onclick="OpenNewTaskModal"
-                   readonly />
+                   @bind="quickTaskCaption"
+                   @bind:event="oninput"
+                   @onkeydown="HandleTaskInputKeyDown" />
             <span class="late-indicator">@GetLatePercentage()</span>
         </div>
 
@@ -78,10 +80,10 @@
             <div class="modal-overlay" @onclick="CloseNewTaskModal">
                 <div class="modal-content" @onclick:stopPropagation="true">
                     <div class="modal-header">
-                        <h3>Add New Task</h3>
+                        <h3>@(isEditMode ? "Edit Task" : "Add New Task")</h3>
                     </div>
                     <div class="modal-body">
-                        <EditForm Model="@newItem" OnValidSubmit="@CreateItem">
+                        <EditForm Model="@newItem" OnValidSubmit="@SaveItem">
                             <DataAnnotationsValidator />
                             <ValidationSummary />
                             
@@ -134,11 +136,11 @@
                             
                             <div class="form-group">
                                 <label>Details</label>
-                                <InputTextArea @bind-Value="newItem.Content" rows="3" />
+                                <InputTextArea @bind-Value="newItem.Content" rows="3" id="task-details-input" />
                             </div>
                             
                             <div class="modal-footer" style="border-top: none; padding: 0;">
-                                <button type="submit" class="btn btn-primary">Add Task</button>
+                                <button type="submit" class="btn btn-primary">@(isEditMode ? "Save Changes" : "Add Task")</button>
                                 <button type="button" class="btn btn-secondary" @onclick="CloseNewTaskModal">Cancel</button>
                             </div>
                         </EditForm>
@@ -192,6 +194,9 @@
     private Person? currentPerson;
     private bool showQuickAddForm = false;
     private bool showNewTaskModal = false;
+    private bool isEditMode = false;
+    private int? editingDateItemId = null;
+    private string quickTaskCaption = "";
     
     // View controls
     private string statusFilter = "active";
@@ -303,29 +308,100 @@
         var isCompleted = item.Status == 1;
         var cssClass = isCompleted ? "task-item-compact completed" : "task-item-compact";
         var dotColor = GetDueDateColor(item);
+        var isEditingDate = editingDateItemId == item.Id;
     
         <li class="@cssClass">
             <input type="checkbox" 
                    checked="@isCompleted"
                    @onchange="@(() => ToggleItem(item.Id))" />
             <span class="due-date-dot" style="color: @dotColor">●</span>
-            <label @onclick="@(() => ToggleItem(item.Id))">@item.Caption</label>
-            <span class="task-date">
-                @if (item.Due.HasValue)
-                {
-                    @item.Due.Value.ToString("MM/dd/yyyy")
-                }
-            </span>
-            <div class="task-actions">
-                <button type="button" @onclick="@(() => DeleteItem(item.Id))">×</button>
-            </div>
+            <label @onclick="@(() => OpenEditTaskModalAsync(item))">@item.Caption</label>
+            @if (isEditingDate)
+            {
+                <input type="date" 
+                       class="task-date-input"
+                       value="@(item.Due?.ToString("yyyy-MM-dd"))"
+                       @onchange="@(e => UpdateItemDate(item.Id, e.Value?.ToString()))"
+                       @onblur="@(() => editingDateItemId = null)" 
+                       autofocus />
+            }
+            else
+            {
+                <span class="task-date" @onclick="@(() => StartEditingDate(item.Id))">
+                    @if (item.Due.HasValue)
+                    {
+                        @item.Due.Value.ToString("MM/dd/yyyy")
+                    }
+                    else
+                    {
+                        <span style="color: #ccc;">no date</span>
+                    }
+                </span>
+            }
         </li>
     };
     
-    private void OpenNewTaskModal()
+    private async Task OpenNewTaskModalAsync()
     {
+        isEditMode = false;
         showNewTaskModal = true;
         showQuickAddForm = false;
+        
+        // Pre-fill the caption if user typed something
+        if (!string.IsNullOrWhiteSpace(quickTaskCaption))
+        {
+            newItem.Caption = quickTaskCaption;
+            quickTaskCaption = "";
+        }
+        else
+        {
+            // Reset for new item
+            var defaultPersonId = currentPerson?.Id ?? persons.FirstOrDefault()?.Id ?? 0;
+            newItem = new TodoItem
+            {
+                UserId = currentUserId,
+                AuthorId = defaultPersonId,
+                ContactId = defaultPersonId,
+                Status = 0,
+                Due = DateOnly.FromDateTime(DateTime.Now)
+            };
+        }
+        
+        // Focus the details field after render
+        await Task.Delay(50);
+        await JS.InvokeVoidAsync("eval", "document.getElementById('task-details-input')?.focus()");
+    }
+
+    private async Task OpenEditTaskModalAsync(TodoItem item)
+    {
+        isEditMode = true;
+        showNewTaskModal = true;
+        showQuickAddForm = false;
+        
+        // Clone the item for editing
+        newItem = new TodoItem
+        {
+            Id = item.Id,
+            UserId = item.UserId,
+            AuthorId = item.AuthorId,
+            ContactId = item.ContactId,
+            Caption = item.Caption,
+            Content = item.Content,
+            Due = item.Due,
+            Status = item.Status
+        };
+        
+        // Focus the details field after render
+        await Task.Delay(50);
+        await JS.InvokeVoidAsync("eval", "document.getElementById('task-details-input')?.focus()");
+    }
+
+    private async Task HandleTaskInputKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && !string.IsNullOrWhiteSpace(quickTaskCaption))
+        {
+            await OpenNewTaskModalAsync();
+        }
     }
 
     private void CloseNewTaskModal()
@@ -371,11 +447,18 @@
         quickAddPerson = new();
     }
 
-    private async Task CreateItem()
+    private async Task SaveItem()
     {
         if (!string.IsNullOrWhiteSpace(newItem.Caption) && newItem.ContactId > 0 && newItem.AuthorId > 0)
         {
-            await TodoService.CreateItemAsync(newItem);
+            if (isEditMode)
+            {
+                await TodoService.UpdateItemAsync(newItem);
+            }
+            else
+            {
+                await TodoService.CreateItemAsync(newItem);
+            }
             await LoadData();
             CloseNewTaskModal();
         }
@@ -390,6 +473,31 @@
     private async Task DeleteItem(int id)
     {
         await TodoService.DeleteItemAsync(id);
+        await LoadData();
+    }
+
+    private void StartEditingDate(int itemId)
+    {
+        editingDateItemId = itemId;
+    }
+
+    private async Task UpdateItemDate(int itemId, string? dateString)
+    {
+        editingDateItemId = null;
+        
+        var item = items?.FirstOrDefault(i => i.Id == itemId);
+        if (item == null) return;
+        
+        if (string.IsNullOrEmpty(dateString))
+        {
+            item.Due = null;
+        }
+        else if (DateOnly.TryParse(dateString, out var newDate))
+        {
+            item.Due = newDate;
+        }
+        
+        await TodoService.UpdateItemAsync(item);
         await LoadData();
     }
 }
