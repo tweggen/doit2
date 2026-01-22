@@ -1,5 +1,14 @@
 @inherits LayoutComponentBase
 
+@code {
+    private string GetDisplayName(string? fullName)
+    {
+        if (string.IsNullOrEmpty(fullName)) return "";
+        var atIndex = fullName.IndexOf('@');
+        return atIndex > 0 ? fullName.Substring(0, atIndex) : fullName;
+    }
+}
+
 <div class="page">
     <input type="checkbox" id="menu-toggle" class="menu-toggle-checkbox" />
     
@@ -19,7 +28,7 @@
             <div class="top-row-content">
                 <AuthorizeView>
                     <Authorized Context="authContext">
-                        <span>Hello, @authContext.User.Identity?.Name!</span>
+                        <span class="greeting">Hello, @GetDisplayName(authContext.User.Identity?.Name)!</span>
                         <a href="Identity/Account/Manage">Settings</a>
                         <a href="Account/Logout">Log out</a>
                     </Authorized>
