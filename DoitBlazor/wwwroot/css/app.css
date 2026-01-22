@@ -77,13 +77,15 @@ main {
     align-items: center;
     flex-wrap: nowrap;
     min-width: 0;
+    overflow: hidden;
 }
 
 .top-row-content .greeting {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 150px;
+    flex: 1 1 auto;
+    text-align: right;
 }
 
 /* Menu toggle button - hidden on desktop */
@@ -146,7 +148,6 @@ main {
 .task-input-bar {
     background-color: transparent;
     padding: 0 0.5rem;
-    border-bottom: 1px solid #e5e7eb;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -203,7 +204,6 @@ main {
     display: flex;
     align-items: center;
     padding: 0 0.5rem;
-    border-bottom: 1px solid #f3f4f6;
     gap: 0.5rem;
     height: 25px;
     line-height: 24px;
@@ -279,8 +279,7 @@ main {
     font-size: 14px;
     color: var(--gray-text);
     font-weight: 400;
-    background-color: #fafafa;
-    border-bottom: 1px solid #f3f4f6;
+    background-color: white;
     height: 25px;
     line-height: 24px;
     display: flex;
@@ -515,8 +514,6 @@ main {
     /* Move input bar to bottom on mobile */
     .task-input-bar {
         order: 1; /* After filter tabs */
-        border-top: 1px solid #e5e7eb;
-        border-bottom: none;
     }
 
     .filter-tabs {
@@ -581,12 +578,9 @@ main {
         padding: 0.4rem 0.65rem;
     }
     
-    .top-row-content .greeting {
-        max-width: 100px;
-    }
-    
     .top-row-content a {
         font-size: 14px;
+        flex-shrink: 0;
     }
 }
 
