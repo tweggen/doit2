@@ -810,6 +810,7 @@ a:hover {
 /* Persons page input alignment - different from todo because no checkbox/dot */
 .task-input-bar.persons-input-bar input {
     /* Person list: 8px padding + 16px icon + 8px margin = 32px to label */
-    /* Input: 8px container padding + padding-left = 32px, so padding-left = 24px */
-    padding-left: 24px;
+    /* Input starts at 8px container padding, so need padding-left to reach 32px = 24px */
+    /* But visually needs more - try 32px */
+    padding-left: 36px;
 }
