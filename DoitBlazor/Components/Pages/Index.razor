@@ -4,6 +4,7 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IJSRuntime JS
 @using DoitBlazor.Configuration
+@using DoitBlazor.Models
 
 <PageTitle>@AppConfig.BrandName - Todo List</PageTitle>
 
@@ -77,73 +78,130 @@
 
         @if (showNewTaskModal)
         {
-            <div class="modal-overlay" @onclick="CloseNewTaskModal">
+            <div class="modal-overlay" @onclick="CloseNewTaskModal" @onkeydown="HandleModalKeyDown">
                 <div class="modal-content" @onclick:stopPropagation="true">
                     <div class="modal-header">
                         <h3>@(isEditMode ? "Edit Task" : "Add New Task")</h3>
-                    </div>
-                    <div class="modal-body">
-                        <EditForm Model="@newItem" OnValidSubmit="@SaveItem">
-                            <DataAnnotationsValidator />
-                            <ValidationSummary />
-                            
-                            <div class="form-group">
-                                <label>Caption</label>
-                                <InputText @bind-Value="newItem.Caption" placeholder="What needs to be done?" />
-                            </div>
-                            
-                            <div class="form-group">
-                                <label>Due Date</label>
-                                <InputDate @bind-Value="newItem.Due" />
-                            </div>
-                            
-                            <div class="form-group">
-                                <label>Contact</label>
-                                <InputSelect @bind-Value="newItem.ContactId">
-                                    <option value="0">Select Contact...</option>
-                                    @foreach (var person in persons)
-                                    {
-                                        <option value="@person.Id">@person.FamilyName, @person.GivenName</option>
-                                    }
-                                </InputSelect>
-                                <button type="button" class="btn btn-secondary" style="margin-top: 0.5rem;" @onclick="ShowQuickAddPerson">
-                                    Add New Contact
+                        @if (isEditMode)
+                        {
+                            <div class="modal-header-actions">
+                                <button type="button" 
+                                        class="btn-icon @(undoRedoState?.CanUndo == true ? "" : "disabled")" 
+                                        @onclick="UndoCurrentItem"
+                                        title="@(undoRedoState?.UndoDescription ?? "Undo") (Ctrl+Z)"
+                                        disabled="@(undoRedoState?.CanUndo != true)">
+                                    ↶
+                                </button>
+                                <button type="button" 
+                                        class="btn-icon @(undoRedoState?.CanRedo == true ? "" : "disabled")" 
+                                        @onclick="RedoCurrentItem"
+                                        title="@(undoRedoState?.RedoDescription ?? "Redo") (Ctrl+Y)"
+                                        disabled="@(undoRedoState?.CanRedo != true)">
+                                    ↷
+                                </button>
+                                <button type="button" 
+                                        class="btn-icon @(showHistory ? "active" : "")" 
+                                        @onclick="ToggleHistory"
+                                        title="Show history">
+                                    ⏱
                                 </button>
                             </div>
-                            
-                            @if (showQuickAddForm)
-                            {
-                                <div style="padding: 1rem; background-color: #f3f4f6; border-radius: 4px; margin-bottom: 1rem;">
-                                    <h4 style="margin-top: 0; font-size: 14px;">Quick Add Contact</h4>
-                                    <EditForm Model="@quickAddPerson" OnValidSubmit="@QuickAddPerson" Context="quickAddContext">
-                                        <div class="form-group">
-                                            <label>Family Name *</label>
-                                            <InputText @bind-Value="quickAddPerson.FamilyName" placeholder="Last name" />
-                                        </div>
-                                        <div class="form-group">
-                                            <label>Given Name</label>
-                                            <InputText @bind-Value="quickAddPerson.GivenName" placeholder="First name" />
-                                        </div>
-                                        <div class="form-group">
-                                            <label>Email</label>
-                                            <InputText @bind-Value="quickAddPerson.Email" placeholder="email@example.com" />
-                                        </div>
-                                        <button type="submit" class="btn btn-primary">Add Contact</button>
-                                        <button type="button" class="btn btn-secondary" style="margin-left: 0.5rem;" @onclick="CancelQuickAdd">Cancel</button>
-                                    </EditForm>
+                        }
+                    </div>
+                    <div class="modal-body">
+                        @if (showHistory && isEditMode)
+                        {
+                            <div class="history-panel">
+                                <h4>Edit History</h4>
+                                @if (itemHistory == null)
+                                {
+                                    <p class="history-loading">Loading...</p>
+                                }
+                                else if (!itemHistory.Any())
+                                {
+                                    <p class="history-empty">No history yet</p>
+                                }
+                                else
+                                {
+                                    <ul class="history-list">
+                                        @foreach (var action in itemHistory)
+                                        {
+                                            <li class="history-item @(action.IsCompacted ? "compacted" : "")">
+                                                <span class="history-time">@FormatHistoryTime(action.Timestamp)</span>
+                                                <span class="history-description">@action.Description</span>
+                                            </li>
+                                        }
+                                    </ul>
+                                }
+                                <button type="button" class="btn btn-secondary btn-sm" @onclick="ToggleHistory">
+                                    Close History
+                                </button>
+                            </div>
+                        }
+                        else
+                        {
+                            <EditForm Model="@newItem" OnValidSubmit="@SaveItem">
+                                <DataAnnotationsValidator />
+                                <ValidationSummary />
+                                
+                                <div class="form-group">
+                                    <label>Caption</label>
+                                    <InputText @bind-Value="newItem.Caption" placeholder="What needs to be done?" />
                                 </div>
-                            }
-                            
-                            <div class="form-group">
-                                <label>Details</label>
-                                <InputTextArea @bind-Value="newItem.Content" rows="3" id="task-details-input" />
-                            </div>
-                            
-                            <div class="modal-footer" style="border-top: none; padding: 0;">
-                                <button type="submit" class="btn btn-primary">@(isEditMode ? "Save Changes" : "Add Task")</button>
-                                <button type="button" class="btn btn-secondary" @onclick="CloseNewTaskModal">Cancel</button>
-                            </div>
-                        </EditForm>
+                                
+                                <div class="form-group">
+                                    <label>Due Date</label>
+                                    <InputDate @bind-Value="newItem.Due" />
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>Contact</label>
+                                    <InputSelect @bind-Value="newItem.ContactId">
+                                        <option value="0">Select Contact...</option>
+                                        @foreach (var person in persons)
+                                        {
+                                            <option value="@person.Id">@person.FamilyName, @person.GivenName</option>
+                                        }
+                                    </InputSelect>
+                                    <button type="button" class="btn btn-secondary" style="margin-top: 0.5rem;" @onclick="ShowQuickAddPerson">
+                                        Add New Contact
+                                    </button>
+                                </div>
+                                
+                                @if (showQuickAddForm)
+                                {
+                                    <div style="padding: 1rem; background-color: #f3f4f6; border-radius: 4px; margin-bottom: 1rem;">
+                                        <h4 style="margin-top: 0; font-size: 14px;">Quick Add Contact</h4>
+                                        <EditForm Model="@quickAddPerson" OnValidSubmit="@QuickAddPerson" Context="quickAddContext">
+                                            <div class="form-group">
+                                                <label>Family Name *</label>
+                                                <InputText @bind-Value="quickAddPerson.FamilyName" placeholder="Last name" />
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Given Name</label>
+                                                <InputText @bind-Value="quickAddPerson.GivenName" placeholder="First name" />
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Email</label>
+                                                <InputText @bind-Value="quickAddPerson.Email" placeholder="email@example.com" />
+                                            </div>
+                                            <button type="submit" class="btn btn-primary">Add Contact</button>
+                                            <button type="button" class="btn btn-secondary" style="margin-left: 0.5rem;" @onclick="CancelQuickAdd">Cancel</button>
+                                        </EditForm>
+                                    </div>
+                                }
+                                
+                                <div class="form-group">
+                                    <label>Details</label>
+                                    <InputTextArea @bind-Value="newItem.Content" rows="3" id="task-details-input" />
+                                </div>
+                                
+                                <div class="modal-footer" style="border-top: none; padding: 0;">
+                                    <button type="submit" class="btn btn-primary">@(isEditMode ? "Save Changes" : "Add Task")</button>
+                                    <button type="button" class="btn btn-secondary" @onclick="CloseNewTaskModal">Cancel</button>
+                                </div>
+                            </EditForm>
+                        }
                     </div>
                 </div>
             </div>
@@ -197,6 +255,11 @@
     private bool isEditMode = false;
     private int? editingDateItemId = null;
     private string quickTaskCaption = "";
+    
+    // Undo/redo state
+    private UndoRedoState? undoRedoState;
+    private List<ActionLog>? itemHistory;
+    private bool showHistory = false;
     
     // View controls
     private string statusFilter = "active";
@@ -346,6 +409,9 @@
         isEditMode = false;
         showNewTaskModal = true;
         showQuickAddForm = false;
+        showHistory = false;
+        undoRedoState = null;
+        itemHistory = null;
         
         // Pre-fill the caption if user typed something
         if (!string.IsNullOrWhiteSpace(quickTaskCaption))
@@ -377,6 +443,7 @@
         isEditMode = true;
         showNewTaskModal = true;
         showQuickAddForm = false;
+        showHistory = false;
         
         // Clone the item for editing
         newItem = new TodoItem
@@ -391,9 +458,20 @@
             Status = item.Status
         };
         
+        // Load undo/redo state
+        await LoadUndoRedoState();
+        
         // Focus the details field after render
         await Task.Delay(50);
         await JS.InvokeVoidAsync("eval", "document.getElementById('task-details-input')?.focus()");
+    }
+
+    private async Task LoadUndoRedoState()
+    {
+        if (newItem.Id > 0)
+        {
+            undoRedoState = await TodoService.GetItemUndoRedoStateAsync(currentUserId, newItem.Id);
+        }
     }
 
     private async Task HandleTaskInputKeyDown(KeyboardEventArgs e)
@@ -404,10 +482,139 @@
         }
     }
 
+    private async Task HandleModalKeyDown(KeyboardEventArgs e)
+    {
+        if (!isEditMode || newItem.Id == 0) return;
+        
+        // Ctrl+Z for Undo
+        if (e.CtrlKey && e.Key == "z")
+        {
+            await UndoCurrentItem();
+        }
+        // Ctrl+Y for Redo
+        else if (e.CtrlKey && e.Key == "y")
+        {
+            await RedoCurrentItem();
+        }
+    }
+
+    private async Task UndoCurrentItem()
+    {
+        if (undoRedoState?.CanUndo != true || newItem.Id == 0) return;
+        
+        var itemId = newItem.Id;
+        var success = await TodoService.UndoItemAsync(currentUserId, itemId);
+        if (success)
+        {
+            // Reload just the items list (not newItem)
+            items = await TodoService.GetUserItemsAsync(currentUserId);
+            
+            // Find the updated item in the refreshed list
+            var updatedItem = items?.FirstOrDefault(i => i.Id == itemId);
+            if (updatedItem != null)
+            {
+                // Update newItem with the restored values
+                newItem.Caption = updatedItem.Caption;
+                newItem.Content = updatedItem.Content;
+                newItem.Due = updatedItem.Due;
+                newItem.Status = updatedItem.Status;
+                newItem.ContactId = updatedItem.ContactId;
+                newItem.AuthorId = updatedItem.AuthorId;
+            }
+            
+            await LoadUndoRedoState();
+            
+            // Refresh history if it's open
+            if (showHistory)
+            {
+                await LoadItemHistory();
+            }
+            
+            StateHasChanged();
+        }
+    }
+
+    private async Task RedoCurrentItem()
+    {
+        if (undoRedoState?.CanRedo != true || newItem.Id == 0) return;
+        
+        var itemId = newItem.Id;
+        var success = await TodoService.RedoItemAsync(currentUserId, itemId);
+        if (success)
+        {
+            // Reload just the items list (not newItem)
+            items = await TodoService.GetUserItemsAsync(currentUserId);
+            
+            // Find the updated item in the refreshed list
+            var updatedItem = items?.FirstOrDefault(i => i.Id == itemId);
+            if (updatedItem != null)
+            {
+                // Update newItem with the restored values
+                newItem.Caption = updatedItem.Caption;
+                newItem.Content = updatedItem.Content;
+                newItem.Due = updatedItem.Due;
+                newItem.Status = updatedItem.Status;
+                newItem.ContactId = updatedItem.ContactId;
+                newItem.AuthorId = updatedItem.AuthorId;
+            }
+            
+            await LoadUndoRedoState();
+            
+            // Refresh history if it's open
+            if (showHistory)
+            {
+                await LoadItemHistory();
+            }
+            
+            StateHasChanged();
+        }
+    }
+
+    private async Task ToggleHistory()
+    {
+        showHistory = !showHistory;
+        
+        if (showHistory && newItem.Id > 0)
+        {
+            await LoadItemHistory();
+        }
+    }
+
+    private async Task LoadItemHistory()
+    {
+        itemHistory = await TodoService.GetItemHistoryAsync(newItem.Id);
+    }
+
+    private string FormatHistoryTime(DateTime timestamp)
+    {
+        var local = timestamp.ToLocalTime();
+        var now = DateTime.Now;
+        
+        if (local.Date == now.Date)
+        {
+            return $"Today {local:h:mm tt}";
+        }
+        else if (local.Date == now.Date.AddDays(-1))
+        {
+            return $"Yesterday {local:h:mm tt}";
+        }
+        else if (local.Year == now.Year)
+        {
+            return local.ToString("MMM d, h:mm tt");
+        }
+        else
+        {
+            return local.ToString("MMM d, yyyy");
+        }
+    }
+
     private void CloseNewTaskModal()
     {
         showNewTaskModal = false;
         showQuickAddForm = false;
+        showHistory = false;
+        undoRedoState = null;
+        itemHistory = null;
     }
 
     private void ShowQuickAddPerson()
@@ -454,6 +661,7 @@
             if (isEditMode)
             {
                 await TodoService.UpdateItemAsync(newItem);
+                await LoadUndoRedoState(); // Refresh undo/redo state after save
             }
             else
             {

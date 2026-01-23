@@ -103,9 +103,9 @@ public class ActionLogService : IActionLogService
     public async Task<ActionLog?> UndoAsync(int userId, string entityType, int entityId)
     {
         // Find the most recent active (not undone), non-compacted action
+        // Note: We don't filter by UserId since the entity itself is already user-scoped
         var action = await _context.ActionLogs
-            .Where(a => a.UserId == userId 
-                     && a.EntityType == entityType 
+            .Where(a => a.EntityType == entityType 
                      && a.EntityId == entityId
                      && a.UndoneAt == null
                      && !a.IsCompacted)
@@ -125,9 +125,9 @@ public class ActionLogService : IActionLogService
     public async Task<ActionLog?> RedoAsync(int userId, string entityType, int entityId)
     {
         // Find the earliest undone action
+        // Note: We don't filter by UserId since the entity itself is already user-scoped
         var action = await _context.ActionLogs
-            .Where(a => a.UserId == userId 
-                     && a.EntityType == entityType 
+            .Where(a => a.EntityType == entityType 
                      && a.EntityId == entityId
                      && a.UndoneAt != null
                      && !a.IsCompacted)
@@ -147,8 +147,7 @@ public class ActionLogService : IActionLogService
     public async Task<bool> CanUndoAsync(int userId, string entityType, int entityId)
     {
         return await _context.ActionLogs
-            .AnyAsync(a => a.UserId == userId 
-                        && a.EntityType == entityType 
+            .AnyAsync(a => a.EntityType == entityType 
                         && a.EntityId == entityId
                         && a.UndoneAt == null
                         && !a.IsCompacted);
@@ -157,8 +156,7 @@ public class ActionLogService : IActionLogService
     public async Task<bool> CanRedoAsync(int userId, string entityType, int entityId)
     {
         return await _context.ActionLogs
-            .AnyAsync(a => a.UserId == userId 
-                        && a.EntityType == entityType 
+            .AnyAsync(a => a.EntityType == entityType 
                         && a.EntityId == entityId
                         && a.UndoneAt != null
                         && !a.IsCompacted);
@@ -223,9 +221,9 @@ public class ActionLogService : IActionLogService
 
     public async Task<UndoRedoState> GetUndoRedoStateAsync(int userId, string entityType, int entityId)
     {
+        // Note: We don't filter by UserId since the entity itself is already user-scoped
         var undoAction = await _context.ActionLogs
-            .Where(a => a.UserId == userId 
-                     && a.EntityType == entityType 
+            .Where(a => a.EntityType == entityType 
                      && a.EntityId == entityId
                      && a.UndoneAt == null
                      && !a.IsCompacted)
@@ -233,8 +231,7 @@ public class ActionLogService : IActionLogService
             .FirstOrDefaultAsync();
         
         var redoAction = await _context.ActionLogs
-            .Where(a => a.UserId == userId 
-                     && a.EntityType == entityType 
+            .Where(a => a.EntityType == entityType 
                      && a.EntityId == entityId
                      && a.UndoneAt != null
                      && !a.IsCompacted)
@@ -242,15 +239,13 @@ public class ActionLogService : IActionLogService
             .FirstOrDefaultAsync();
         
         var undoCount = await _context.ActionLogs
-            .CountAsync(a => a.UserId == userId 
-                          && a.EntityType == entityType 
+            .CountAsync(a => a.EntityType == entityType 
                           && a.EntityId == entityId
                           && a.UndoneAt == null
                           && !a.IsCompacted);
         
         var redoCount = await _context.ActionLogs
-            .CountAsync(a => a.UserId == userId 
-                          && a.EntityType == entityType 
+            .CountAsync(a => a.EntityType == entityType 
                           && a.EntityId == entityId
                           && a.UndoneAt != null
                           && !a.IsCompacted);

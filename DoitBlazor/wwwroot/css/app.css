@@ -676,3 +676,108 @@ a:hover {
 .navbar-brand {
     color: var(--primary-color) !important;
 }
+
+/* Modal header with actions */
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    margin: 0;
+}
+
+.modal-header-actions {
+    display: flex;
+    gap: 0.25rem;
+    align-items: center;
+}
+
+/* Icon buttons for undo/redo/history */
+.btn-icon {
+    background: none;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 0.35rem 0.5rem;
+    font-size: 1.1rem;
+    cursor: pointer;
+    color: var(--dark-text);
+    line-height: 1;
+    transition: all 0.2s;
+}
+
+.btn-icon:hover:not(.disabled) {
+    background-color: var(--light-gray-bg);
+    border-color: var(--blue-text);
+    color: var(--blue-text);
+}
+
+.btn-icon.active {
+    background-color: var(--blue-text);
+    border-color: var(--blue-text);
+    color: white;
+}
+
+.btn-icon.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+/* History panel */
+.history-panel {
+    padding: 0.5rem 0;
+}
+
+.history-panel h4 {
+    margin: 0 0 1rem 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--dark-text);
+}
+
+.history-list {
+    list-style: none;
+    margin: 0 0 1rem 0;
+    padding: 0;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.history-item {
+    display: flex;
+    flex-direction: column;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.history-item:last-child {
+    border-bottom: none;
+}
+
+.history-item.compacted {
+    opacity: 0.7;
+}
+
+.history-time {
+    font-size: 12px;
+    color: var(--gray-text);
+}
+
+.history-description {
+    font-size: 14px;
+    color: var(--dark-text);
+}
+
+.history-loading,
+.history-empty {
+    font-size: 14px;
+    color: var(--gray-text);
+    font-style: italic;
+    padding: 1rem 0;
+}
+
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 12px;
+}
