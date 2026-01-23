@@ -115,6 +115,7 @@
     private int currentUserId;
     private bool showPersonModal = false;
     private bool isEditMode = false;
+    private bool showDeleteConfirm = false;
     private string quickPersonName = "";
 
     protected override async Task OnInitializedAsync()
@@ -167,6 +168,7 @@
     {
         isEditMode = true;
         showPersonModal = true;
+        showDeleteConfirm = false;
         
         // Clone the person for editing
         editPerson = new Person
@@ -187,6 +189,7 @@
     private void ClosePersonModal()
     {
         showPersonModal = false;
+        showDeleteConfirm = false;
     }
 
     private async Task SavePerson()
@@ -206,7 +209,17 @@
         }
     }
 
-    private async Task DeleteCurrentPerson()
+    private void DeleteCurrentPerson()
+    {
+        showDeleteConfirm = true;
+    }
+
+    private void CancelDelete()
+    {
+        showDeleteConfirm = false;
+    }
+
+    private async Task ConfirmDeletePerson()
     {
         if (editPerson.Id > 0)
         {

@@ -798,3 +798,9 @@ a:hover {
     text-overflow: ellipsis;
     max-width: 200px;
 }
+
+.delete-confirm-text {
+    font-weight: 500;
+    color: #dc2626;
+    margin-right: 0.5rem;
+}
