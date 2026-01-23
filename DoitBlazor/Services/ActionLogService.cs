@@ -384,25 +384,14 @@ public class ActionLogService : IActionLogService
             {
                 if (merged.ContainsKey(field))
                 {
-                    // Keep the original "old" value, update "new" to latest
-                    merged[field].New = change.New;
+                    // Keep the original "old" value (from first action)
+                    // "new" is only populated at undo time, so we don't need to track it during compaction
                 }
                 else
                 {
-                    merged[field] = new FieldChange(change.Old, change.New);
+                    merged[field] = new FieldChange(change.Old);
                 }
             }
-        }
-        
-        // Remove fields where old == new (no net change)
-        var noChangeFields = merged
-            .Where(kvp => JsonSerializer.Serialize(kvp.Value.Old) == JsonSerializer.Serialize(kvp.Value.New))
-            .Select(kvp => kvp.Key)
-            .ToList();
-        
-        foreach (var field in noChangeFields)
-        {
-            merged.Remove(field);
         }
         
         return merged;

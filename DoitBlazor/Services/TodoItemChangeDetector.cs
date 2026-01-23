@@ -8,7 +8,8 @@ namespace DoitBlazor.Services;
 public static class TodoItemChangeDetector
 {
     /// <summary>
-    /// Compare two TodoItems and return a dictionary of field changes
+    /// Compare two TodoItems and return a dictionary of field changes.
+    /// Only stores the "old" values - "new" is captured at undo time.
     /// </summary>
     public static Dictionary<string, FieldChange> DetectChanges(TodoItem original, TodoItem updated)
     {
@@ -16,34 +17,32 @@ public static class TodoItemChangeDetector
         
         if (original.Caption != updated.Caption)
         {
-            changes["Caption"] = new FieldChange(original.Caption, updated.Caption);
+            changes["Caption"] = new FieldChange(original.Caption);
         }
         
         if (original.Content != updated.Content)
         {
-            changes["Content"] = new FieldChange(original.Content, updated.Content);
+            changes["Content"] = new FieldChange(original.Content);
         }
         
         if (original.Due != updated.Due)
         {
-            changes["Due"] = new FieldChange(
-                original.Due?.ToString("yyyy-MM-dd"), 
-                updated.Due?.ToString("yyyy-MM-dd"));
+            changes["Due"] = new FieldChange(original.Due?.ToString("yyyy-MM-dd"));
         }
         
         if (original.Status != updated.Status)
         {
-            changes["Status"] = new FieldChange(original.Status, updated.Status);
+            changes["Status"] = new FieldChange(original.Status);
         }
         
         if (original.ContactId != updated.ContactId)
         {
-            changes["ContactId"] = new FieldChange(original.ContactId, updated.ContactId);
+            changes["ContactId"] = new FieldChange(original.ContactId);
         }
         
         if (original.AuthorId != updated.AuthorId)
         {
-            changes["AuthorId"] = new FieldChange(original.AuthorId, updated.AuthorId);
+            changes["AuthorId"] = new FieldChange(original.AuthorId);
         }
         
         return changes;

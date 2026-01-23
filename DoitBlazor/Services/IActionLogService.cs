@@ -94,7 +94,9 @@ public interface IActionLogService
 }
 
 /// <summary>
-/// Represents a single field change with old and new values
+/// Represents a single field change. 
+/// "Old" is always stored at record time.
+/// "New" is captured at undo time (for redo support).
 /// </summary>
 public class FieldChange
 {
@@ -102,6 +104,12 @@ public class FieldChange
     public object? New { get; set; }
     
     public FieldChange() { }
+    
+    public FieldChange(object? oldValue)
+    {
+        Old = oldValue;
+        New = null; // Captured later at undo time
+    }
     
     public FieldChange(object? oldValue, object? newValue)
     {

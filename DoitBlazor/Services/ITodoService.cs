@@ -12,6 +12,12 @@ public interface ITodoService
     Task DeleteItemAsync(int id);
     Task<TodoItem> ToggleItemStatusAsync(int id);
     
+    // TodoItem undo/redo operations
+    Task<bool> UndoItemAsync(int userId, int itemId);
+    Task<bool> RedoItemAsync(int userId, int itemId);
+    Task<UndoRedoState> GetItemUndoRedoStateAsync(int userId, int itemId);
+    Task<List<ActionLog>> GetItemHistoryAsync(int itemId, int limit = 50);
+    
     // Person operations
     Task<List<Person>> GetUserPersonsAsync(int userId);
     Task<Person?> GetPersonAsync(int id);
