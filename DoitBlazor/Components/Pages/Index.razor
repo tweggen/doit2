@@ -160,7 +160,7 @@
                                         <option value="0">Select Contact...</option>
                                         @foreach (var person in persons)
                                         {
-                                            <option value="@person.Id">@person.FamilyName, @person.GivenName</option>
+                                            <option value="@person.Id">@(string.IsNullOrWhiteSpace(person.GivenName) ? person.FamilyName : $"{person.FamilyName}, {person.GivenName}")</option>
                                         }
                                     </InputSelect>
                                     <button type="button" class="btn btn-secondary" style="margin-top: 0.5rem;" @onclick="ShowQuickAddPerson">
