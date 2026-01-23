@@ -160,19 +160,19 @@ main {
     border: none;
     background-color: var(--cream-bg);
     border-radius: 4px;
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 600;
     font-family: 'Jost', sans-serif;
     outline: none;
     color: var(--dark-text);
-    height: 22px;
-    line-height: 22px;
-    /* Position: align text with task item label, with small visual padding on left */
-    margin-left: calc(52px - 0.5rem - 12px);
-    padding: 0 8px 0 12px;
+    height: 24px;
+    line-height: 24px;
+    /* Position: align text with task item label */
+    margin-left: 0;
+    padding: 0 8px 0 42px;
     /* Width: reasonable input field width, not spanning full row */
     flex: 1 1 auto;
-    max-width: 400px;
+    max-width: 450px;
 }
 
 .task-input-bar input::placeholder {
@@ -805,4 +805,11 @@ a:hover {
     font-weight: 500;
     color: #dc2626;
     margin-right: 0.5rem;
+}
+
+/* Persons page input alignment - different from todo because no checkbox/dot */
+.task-input-bar.persons-input-bar input {
+    /* Person list: 8px padding + 16px icon + 8px margin = 32px to label */
+    /* Input: 8px container padding + padding-left = 32px, so padding-left = 24px */
+    padding-left: 24px;
 }
