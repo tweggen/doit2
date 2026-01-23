@@ -484,6 +484,13 @@
 
     private async Task HandleModalKeyDown(KeyboardEventArgs e)
     {
+        // ESC to close modal
+        if (e.Key == "Escape")
+        {
+            CloseNewTaskModal();
+            return;
+        }
+        
         if (!isEditMode || newItem.Id == 0) return;
         
         // Ctrl+Z for Undo

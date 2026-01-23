@@ -420,6 +420,12 @@ public class TodoService : ITodoService
         var person = await _context.Persons.FindAsync(id);
         if (person != null)
         {
+            // Prevent deletion of a person that is linked to a user account
+            if (person.UserId.HasValue)
+            {
+                throw new InvalidOperationException("Cannot delete a contact that is linked to a user account.");
+            }
+            
             _context.Persons.Remove(person);
             await _context.SaveChangesAsync();
         }

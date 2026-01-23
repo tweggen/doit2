@@ -162,6 +162,7 @@ main {
     border-radius: 4px;
     font-size: 14px;
     font-weight: 600;
+    font-family: 'Jost', sans-serif;
     outline: none;
     color: var(--dark-text);
     height: 22px;
@@ -176,6 +177,7 @@ main {
 
 .task-input-bar input::placeholder {
     color: var(--gray-text);
+    font-weight: 400;
 }
 
 .late-indicator {

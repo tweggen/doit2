@@ -53,7 +53,7 @@
 
         @if (showPersonModal)
         {
-            <div class="modal-overlay" @onclick="ClosePersonModal">
+            <div class="modal-overlay" @onclick="ClosePersonModal" @onkeydown="HandleModalKeyDown" tabindex="0">
                 <div class="modal-content" @onclick:stopPropagation="true">
                     <div class="modal-header">
                         <h3>@(isEditMode ? "Edit Contact" : "Add New Contact")</h3>
@@ -88,7 +88,7 @@
                                 else
                                 {
                                     <button type="submit" class="btn btn-primary">@(isEditMode ? "Save Changes" : "Add Contact")</button>
-                                    @if (isEditMode)
+                                    @if (isEditMode && !IsCurrentUserPerson())
                                     {
                                         <button type="button" class="btn btn-danger" @onclick="DeleteCurrentPerson">Delete</button>
                                     }
@@ -144,6 +144,14 @@
         if (e.Key == "Enter" && !string.IsNullOrWhiteSpace(quickPersonName))
         {
             await OpenNewPersonModal();
+        }
+    }
+
+    private void HandleModalKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Escape")
+        {
+            ClosePersonModal();
         }
     }
 
@@ -217,6 +225,12 @@
     private void CancelDelete()
     {
         showDeleteConfirm = false;
+    }
+
+    private bool IsCurrentUserPerson()
+    {
+        // Check if the person being edited is linked to the current user
+        return editPerson.UserId.HasValue && editPerson.UserId.Value == currentUserId;
     }
 
     private async Task ConfirmDeletePerson()
