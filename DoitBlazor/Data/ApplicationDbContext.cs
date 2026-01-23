@@ -18,6 +18,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
     public DbSet<Note> Notes { get; set; }
     public DbSet<Tag> Tags { get; set; }
     public DbSet<UserConfig> UserConfigs { get; set; }
+    public DbSet<ActionLog> ActionLogs { get; set; }
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -71,6 +72,22 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
         // Add index on due date for TodoItems (matching your Elixir migration)
         modelBuilder.Entity<TodoItem>()
             .HasIndex(t => t.Due);
+        
+        // ActionLog indexes for efficient queries
+        modelBuilder.Entity<ActionLog>(entity =>
+        {
+            // Index for undo/redo queries (most common)
+            entity.HasIndex(e => new { e.UserId, e.EntityType, e.EntityId, e.UndoneAt, e.IsCompacted })
+                  .HasDatabaseName("IX_ActionLog_UndoRedo");
+            
+            // Index for history queries
+            entity.HasIndex(e => new { e.EntityType, e.EntityId, e.Timestamp })
+                  .HasDatabaseName("IX_ActionLog_History");
+            
+            // Index for compaction queries
+            entity.HasIndex(e => new { e.UserId, e.Timestamp, e.IsCompacted })
+                  .HasDatabaseName("IX_ActionLog_Compaction");
+        });
         
         // Configure Identity table names to match your existing schema if needed
         modelBuilder.Entity<ApplicationUser>().ToTable("users");

@@ -91,6 +91,7 @@ builder.Services.AddAuthentication()
 
 // Add application services
 builder.Services.AddScoped<ITodoService, TodoService>();
+builder.Services.AddScoped<IActionLogService, ActionLogService>();
 
 // Add authorization
 builder.Services.AddAuthorization();

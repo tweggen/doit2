@@ -17,10 +17,74 @@ namespace DoitBlazor.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.0")
+                .HasAnnotation("ProductVersion", "9.0.11")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("DoitBlazor.Models.ActionLog", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ActionType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("action_type");
+
+                    b.Property<string>("Changes")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("changes");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("description");
+
+                    b.Property<int>("EntityId")
+                        .HasColumnType("integer")
+                        .HasColumnName("entity_id");
+
+                    b.Property<string>("EntityType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("entity_type");
+
+                    b.Property<bool>("IsCompacted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_compacted");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("timestamp");
+
+                    b.Property<DateTime?>("UndoneAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("undone_at");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EntityType", "EntityId", "Timestamp")
+                        .HasDatabaseName("IX_ActionLog_History");
+
+                    b.HasIndex("UserId", "Timestamp", "IsCompacted")
+                        .HasDatabaseName("IX_ActionLog_Compaction");
+
+                    b.HasIndex("UserId", "EntityType", "EntityId", "UndoneAt", "IsCompacted")
+                        .HasDatabaseName("IX_ActionLog_UndoRedo");
+
+                    b.ToTable("action_logs");
+                });
 
             modelBuilder.Entity("DoitBlazor.Models.ApplicationUser", b =>
                 {
@@ -477,6 +541,17 @@ namespace DoitBlazor.Migrations
                     b.HasKey("UserId", "LoginProvider", "Name");
 
                     b.ToTable("user_tokens", (string)null);
+                });
+
+            modelBuilder.Entity("DoitBlazor.Models.ActionLog", b =>
+                {
+                    b.HasOne("DoitBlazor.Models.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("DoitBlazor.Models.Dependency", b =>
