@@ -3,7 +3,10 @@
 @inject ITodoService TodoService
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IJSRuntime JS
+@inject UserManager<ApplicationUser> UserManager
 @using DoitBlazor.Configuration
+@using DoitBlazor.Models
+@using Microsoft.AspNetCore.Identity
 
 <PageTitle>@AppConfig.BrandName - Contacts</PageTitle>
 
@@ -121,14 +124,16 @@
     protected override async Task OnInitializedAsync()
     {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        var user = authState.User;
+        var claimsPrincipal = authState.User;
 
-        if (user.Identity?.IsAuthenticated == true)
+        if (claimsPrincipal.Identity?.IsAuthenticated == true)
         {
-            var userIdClaim = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
-            if (userIdClaim != null && int.TryParse(userIdClaim.Value, out var userId))
+            // Get the actual database user via UserManager
+            var user = await UserManager.GetUserAsync(claimsPrincipal);
+            
+            if (user != null)
             {
-                currentUserId = userId;
+                currentUserId = user.Id;
                 await LoadData();
             }
         }

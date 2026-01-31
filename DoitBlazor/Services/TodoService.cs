@@ -368,11 +368,32 @@ public class TodoService : ITodoService
     
     public async Task<Person> EnsureUserHasPersonAsync(int userId, string email, string? userName)
     {
-        // Check if user already has a Person record
+        // First verify the user actually exists in the database
+        var userExists = await _context.Users.AnyAsync(u => u.Id == userId);
+        if (!userExists)
+        {
+            throw new InvalidOperationException($"Cannot create Person: User with Id {userId} does not exist");
+        }
+        
+        // Check if user already has a Person record (linked via UserId)
         var existingPerson = await FindPersonForUserAsync(userId);
         if (existingPerson != null)
         {
             return existingPerson;
+        }
+        
+        // Also check if there's a Person owned by this user (might exist without UserId link)
+        var ownedPerson = await _context.Persons
+            .FirstOrDefaultAsync(p => p.OwningUserId == userId && p.Email == email);
+        if (ownedPerson != null)
+        {
+            // Link this person to the user if not already linked
+            if (!ownedPerson.UserId.HasValue)
+            {
+                ownedPerson.UserId = userId;
+                await _context.SaveChangesAsync();
+            }
+            return ownedPerson;
         }
         
         // Extract name from email or use userName
@@ -385,7 +406,7 @@ public class TodoService : ITodoService
             UserId = userId,
             OwningUserId = userId,
             Email = email,
-            FamilyName = namePart, // Use email username or userName as family name
+            FamilyName = namePart,
             GivenName = "",
             Status = 0,
             CreatedAt = DateTime.UtcNow,
