@@ -5,6 +5,7 @@ using Npgsql;
 using DoitBlazor.Data;
 using DoitBlazor.Models;
 using DoitBlazor.Services;
+using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -97,8 +98,18 @@ builder.Services.AddScoped<IActionLogService, ActionLogService>();
 builder.Services.AddAuthorization();
 builder.Services.AddCascadingAuthenticationState();
 
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    // Trust all proxies (for Docker/Coolify setup)
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+});
+
 var app = builder.Build();
 
+app.UseForwardedHeaders();
+app.UseRouting();
 // Dev convenience: apply EF Core migrations automatically on startup.
 if (app.Environment.IsDevelopment())
 {
