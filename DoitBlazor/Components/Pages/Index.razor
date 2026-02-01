@@ -637,8 +637,20 @@
     {
         if (!string.IsNullOrWhiteSpace(quickAddPerson.FamilyName))
         {
+            // Save current form state before reloading data
+            var savedCaption = newItem.Caption;
+            var savedContent = newItem.Content;
+            var savedDue = newItem.Due;
+            var savedStatus = newItem.Status;
+            
             await TodoService.CreatePersonAsync(quickAddPerson);
             await LoadData();
+            
+            // Restore form state that LoadData() wiped
+            newItem.Caption = savedCaption;
+            newItem.Content = savedContent;
+            newItem.Due = savedDue;
+            newItem.Status = savedStatus;
             
             var newlyAddedPerson = persons.FirstOrDefault(p => 
                 p.FamilyName == quickAddPerson.FamilyName && 
