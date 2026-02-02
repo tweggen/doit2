@@ -76,6 +76,7 @@ main {
     flex-direction: column;
     overflow: hidden;
     min-height: 0; /* Critical for flex children to shrink */
+    min-width: 0; /* Critical for text-overflow in flex children */
 }
 
 .top-row {
@@ -167,6 +168,7 @@ main {
     flex-direction: column;
     overflow: hidden;
     min-height: 0; /* Critical for flex children to shrink */
+    min-width: 0; /* Critical for text-overflow in flex children */
 }
 
 /* Top input bar - container without background */
@@ -226,6 +228,8 @@ main {
     list-style: none;
     margin: 0;
     padding: 0;
+    width: 100%;
+    overflow: hidden;
 }
 
 /* Exact match to original: 25px height, 0 padding */
@@ -236,6 +240,8 @@ main {
     gap: 0.5rem;
     height: 25px;
     line-height: 24px;
+    min-width: 0;
+    overflow: hidden;
 }
 
 .task-item-compact:hover {
