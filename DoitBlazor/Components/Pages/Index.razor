@@ -377,7 +377,7 @@
                    checked="@isCompleted"
                    @onchange="@(() => ToggleItem(item.Id))" />
             <span class="due-date-dot" style="color: @dotColor">●</span>
-            <label @onclick="@(() => OpenEditTaskModalAsync(item))">@item.Caption</label>
+            <label title="@item.Caption" @onclick="@(() => OpenEditTaskModalAsync(item))">@item.Caption</label>
             @if (isEditingDate)
             {
                 <input type="date" 
