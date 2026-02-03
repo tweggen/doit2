@@ -63,6 +63,21 @@ body {
     transition: transform 0.3s ease;
     z-index: 1000;
     position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+/* Sidebar logo at bottom */
+.sidebar-logo {
+    margin-top: auto;
+    padding-bottom: 1.5rem;
+    text-align: center;
+}
+
+.sidebar-logo img {
+    height: 96px;
+    width: auto;
 }
 
 /* Sidebar overlay (only on mobile when menu is open) */
@@ -294,6 +309,15 @@ main {
 
 .task-date:hover {
     color: var(--blue-text);
+}
+
+.task-contact-initials {
+    font-size: 14px;
+    color: var(--gray-text);
+    white-space: nowrap;
+    flex-shrink: 0;
+    line-height: 24px;
+    margin-right: 0.5rem;
 }
 
 .task-date-input {
@@ -568,7 +592,7 @@ main {
 }
 
 /* Responsive styles for mobile - input moves to bottom */
-@media (max-width: 768px) {
+@media (max-width: 768px) and (hover: none) and (pointer: coarse) {
     /* Move input bar to bottom on mobile */
     .task-input-bar {
         order: 1; /* After filter tabs */
@@ -632,7 +656,7 @@ main {
 }
 
 /* Extra styles for portrait orientation on mobile */
-@media (max-width: 768px) and (orientation: portrait) {
+@media (max-width: 768px) and (orientation: portrait) and (hover: none) and (pointer: coarse) {
     .top-row {
         padding: 0.15rem 0.5rem;
     }

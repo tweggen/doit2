@@ -65,6 +65,20 @@ a:hover {
     border-color: var(--brand-color) !important;
 }
 
+.external-login-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-size: 1rem;
+}
+
+.external-login-icon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
 /* Back button - matches the menu toggle style from main app */
 .back-button {
     display: inline-block;
