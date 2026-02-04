@@ -672,15 +672,19 @@
         if (!string.IsNullOrWhiteSpace(quickAddPerson.FamilyName))
         {
             // Save current form state before reloading data
+            var savedId = newItem.Id;
+            var savedUserId = newItem.UserId;
             var savedCaption = newItem.Caption;
             var savedContent = newItem.Content;
             var savedDue = newItem.Due;
             var savedStatus = newItem.Status;
-            
+
             await TodoService.CreatePersonAsync(quickAddPerson);
             await LoadData();
             
             // Restore form state that LoadData() wiped
+            newItem.Id = savedId;
+            newItem.UserId = savedUserId;
             newItem.Caption = savedCaption;
             newItem.Content = savedContent;
             newItem.Due = savedDue;
