@@ -77,7 +77,9 @@ body {
 
 .sidebar-logo img {
     height: 96px;
+    max-height: 96px;
     width: auto;
+    max-width: 100%;
 }
 
 /* Sidebar overlay (only on mobile when menu is open) */
