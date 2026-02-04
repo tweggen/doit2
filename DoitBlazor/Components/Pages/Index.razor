@@ -43,7 +43,11 @@
                 {
                     @foreach (var group in GetItemsGroupedByDueDate())
                     {
-                        <div class="person-group-header">@group.Key</div>
+                        var headerColor = GetDateGroupColor(group.Key);
+                        <div class="person-group-header">
+                            <span class="due-date-dot" style="color: @headerColor">●</span>
+                            @group.Key
+                        </div>
                         <ul>
                             @foreach (var item in group)
                             {
@@ -287,7 +291,7 @@
     
     // View controls
     private string statusFilter = "active";
-    private string groupBy = "duedate";
+    private string groupBy = "person";
 
     protected override async Task OnInitializedAsync()
     {
@@ -378,15 +382,27 @@
     private string GetDueDateColor(TodoItem item)
     {
         if (!item.Due.HasValue) return "#10b981"; // green for no date (future)
+        return GetDateColor(item.Due.Value);
+    }
 
+    private string GetDateColor(DateOnly date)
+    {
         var today = DateOnly.FromDateTime(DateTime.Now);
 
-        if (item.Due.Value < today)
+        if (date < today)
             return "#dc2626"; // red for overdue
-        else if (item.Due.Value == today)
+        else if (date == today)
             return "#fbbf24"; // yellow for today
         else
             return "#10b981"; // green for future
+    }
+
+    private string GetDateGroupColor(string dateKey)
+    {
+        if (dateKey == "No Due Date") return "#10b981"; // green
+        if (DateOnly.TryParse(dateKey, out var date))
+            return GetDateColor(date);
+        return "#10b981"; // default green
     }
 
     private string GetContactInitials(Person? contact)
@@ -421,7 +437,10 @@
             <input type="checkbox"
                    checked="@isCompleted"
                    @onchange="@(() => ToggleItem(item.Id))" />
-            <span class="due-date-dot" style="color: @dotColor">●</span>
+            @if (groupBy != "duedate")
+            {
+                <span class="due-date-dot" style="color: @dotColor">●</span>
+            }
             <label title="@item.Caption" @onclick="@(() => OpenEditTaskModalAsync(item))">@item.Caption</label>
             @if (groupBy != "person")
             {
