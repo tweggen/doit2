@@ -398,6 +398,7 @@ main {
     padding: 16px;
     text-decoration: none;
     color: var(--gray-text);
+    font-family: 'Jost', sans-serif;
     font-size: 14px;
     background: none;
     border: none;
