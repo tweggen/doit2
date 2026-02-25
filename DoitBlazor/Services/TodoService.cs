@@ -350,8 +350,8 @@ public class TodoService : ITodoService
     {
         return await _context.Persons
             .Where(p => p.OwningUserId == userId)
-            .OrderBy(p => p.FamilyName)
-            .ThenBy(p => p.GivenName)
+            .OrderBy(p => p.FamilyName.ToLower())
+            .ThenBy(p => (p.GivenName ?? "").ToLower())
             .ToListAsync();
     }
     
