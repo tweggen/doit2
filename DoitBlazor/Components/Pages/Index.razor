@@ -60,7 +60,14 @@
                 {
                     @foreach (var group in GetItemsGroupedByPerson())
                     {
-                        <div class="person-group-header">@group.Key</div>
+                        var groupContact = group.FirstOrDefault()?.Contact;
+                        <div class="person-group-header">
+                            @group.Key
+                            @if (groupContact != null)
+                            {
+                                <button type="button" class="contact-add-btn" @onclick="@(() => OpenNewTaskModalForContact(groupContact))" title="Add task for this contact">+</button>
+                            }
+                        </div>
                         <ul>
                             @foreach (var item in group)
                             {
@@ -152,7 +159,7 @@
                                 
                                 <div class="form-group">
                                     <label>Caption</label>
-                                    <InputText @bind-Value="newItem.Caption" placeholder="What needs to be done?" />
+                                    <InputText @bind-Value="newItem.Caption" placeholder="What needs to be done?" id="task-caption-input" />
                                 </div>
                                 
                                 <div class="form-group">
@@ -507,6 +514,30 @@
         // Focus the details field after render
         await Task.Delay(50);
         await JS.InvokeVoidAsync("eval", "document.getElementById('task-details-input')?.focus()");
+    }
+
+    private async Task OpenNewTaskModalForContact(Person contact)
+    {
+        isEditMode = false;
+        showNewTaskModal = true;
+        showQuickAddForm = false;
+        showHistory = false;
+        undoRedoState = null;
+        itemHistory = null;
+
+        // Reset for new item with pre-selected contact
+        newItem = new TodoItem
+        {
+            UserId = currentUserId,
+            AuthorId = currentPerson?.Id ?? contact.Id,
+            ContactId = contact.Id,
+            Status = 0,
+            Due = DateOnly.FromDateTime(DateTime.Now)
+        };
+
+        // Focus the caption field after render
+        await Task.Delay(50);
+        await JS.InvokeVoidAsync("eval", "document.getElementById('task-caption-input')?.focus()");
     }
 
     private async Task OpenEditTaskModalAsync(TodoItem item)
