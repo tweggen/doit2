@@ -490,7 +490,7 @@
         showHistory = false;
         undoRedoState = null;
         itemHistory = null;
-        
+
         // Pre-fill the caption if user typed something
         if (!string.IsNullOrWhiteSpace(quickTaskCaption))
         {
@@ -499,8 +499,19 @@
         }
         else
         {
-            // Reset for new item
-            var defaultPersonId = currentPerson?.Id ?? persons.FirstOrDefault()?.Id ?? 0;
+            // Reset for new item - use last selected contact if available
+            var lastContactIdStr = await JS.InvokeAsync<string>("localStorage.getItem", "lastSelectedContactId");
+            var lastContactId = 0;
+            if (!string.IsNullOrEmpty(lastContactIdStr) && int.TryParse(lastContactIdStr, out var parsed))
+            {
+                lastContactId = parsed;
+            }
+
+            // Use last contact if it exists in persons list, otherwise use default
+            var defaultPersonId = lastContactId > 0 && persons.Any(p => p.Id == lastContactId)
+                ? lastContactId
+                : (currentPerson?.Id ?? persons.FirstOrDefault()?.Id ?? 0);
+
             newItem = new TodoItem
             {
                 UserId = currentUserId,
@@ -510,7 +521,7 @@
                 Due = DateOnly.FromDateTime(DateTime.Now)
             };
         }
-        
+
         // Focus the details field after render
         await Task.Delay(50);
         await JS.InvokeVoidAsync("eval", "document.getElementById('task-details-input')?.focus()");
@@ -796,6 +807,10 @@
                 await TodoService.CreateItemAsync(newItem);
             }
             await LoadData();
+
+            // Remember the last selected contact
+            await JS.InvokeVoidAsync("localStorage.setItem", "lastSelectedContactId", newItem.ContactId.ToString());
+
             CloseNewTaskModal();
         }
     }
