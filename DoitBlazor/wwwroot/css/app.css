@@ -596,7 +596,7 @@ main {
 }
 
 /* Responsive styles for mobile - input moves to bottom */
-@media (max-width: 768px) and (hover: none) and (pointer: coarse) {
+@media (max-width: 768px) {
     /* Move input bar to bottom on mobile */
     .task-input-bar {
         order: 1; /* After filter tabs */
