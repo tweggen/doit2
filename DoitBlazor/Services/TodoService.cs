@@ -430,10 +430,14 @@ public class TodoService : ITodoService
     
     public async Task<Person> UpdatePersonAsync(Person person)
     {
-        person.UpdatedAt = DateTime.UtcNow;
-        _context.Persons.Update(person);
+        var tracked = await _context.Persons.FindAsync(person.Id);
+        if (tracked == null)
+            throw new InvalidOperationException($"Person with Id {person.Id} not found.");
+
+        _context.Entry(tracked).CurrentValues.SetValues(person);
+        tracked.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
-        return person;
+        return tracked;
     }
     
     public async Task DeletePersonAsync(int id)
