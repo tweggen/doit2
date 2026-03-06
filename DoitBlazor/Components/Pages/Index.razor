@@ -291,6 +291,8 @@
     private int? editingDateItemId = null;
     private string quickTaskCaption = "";
     
+    private int lastUsedContactId;
+
     // Undo/redo state
     private UndoRedoState? undoRedoState;
     private List<ActionLog>? itemHistory;
@@ -330,12 +332,14 @@
         currentPerson = await TodoService.FindPersonForUserAsync(currentUserId);
         
         var defaultPersonId = currentPerson?.Id ?? persons.FirstOrDefault()?.Id ?? 0;
-        
+        if (lastUsedContactId == 0)
+            lastUsedContactId = defaultPersonId;
+
         newItem = new TodoItem
         {
             UserId = currentUserId,
             AuthorId = defaultPersonId,
-            ContactId = defaultPersonId,
+            ContactId = lastUsedContactId,
             Status = 0,
             Due = DateOnly.FromDateTime(DateTime.Now)
         };
@@ -516,7 +520,7 @@
             {
                 UserId = currentUserId,
                 AuthorId = defaultPersonId,
-                ContactId = defaultPersonId,
+                ContactId = lastUsedContactId > 0 ? lastUsedContactId : defaultPersonId,
                 Status = 0,
                 Due = DateOnly.FromDateTime(DateTime.Now)
             };
@@ -797,6 +801,8 @@
     {
         if (!string.IsNullOrWhiteSpace(newItem.Caption) && newItem.ContactId > 0 && newItem.AuthorId > 0)
         {
+            lastUsedContactId = newItem.ContactId;
+
             if (isEditMode)
             {
                 await TodoService.UpdateItemAsync(newItem);
